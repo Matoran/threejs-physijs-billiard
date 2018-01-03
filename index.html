@@ -16,6 +16,9 @@
 
 <script src="lib/three.js"></script>
 <script src="lib/physi.js"></script>
+<script src="objects/table.js"></script>
+<script src="objects/ball.js"></script>
+<script src="objects/cueStick.js"></script>
 
 <script src="lib/MTLLoader.js"></script>
 <script src="lib/OBJLoader.js"></script>
@@ -24,22 +27,23 @@
 <script>
     Physijs.scripts.worker = 'lib/physijs_worker.js';
     Physijs.scripts.ammo = './ammo.js';
-    var container, stats;
-    var camera, scene, renderer;
-    var mouseX = 0, mouseY = 0;
-    var windowHalfX = window.innerWidth / 2;
-    var windowHalfY = window.innerHeight / 2;
-    var ball;
-    var table = [];
-    var controls;
+    let container, stats;
+    let camera, scene, renderer;
+    let mouseX = 0, mouseY = 0;
+    let windowHalfX = window.innerWidth / 2;
+    let windowHalfY = window.innerHeight / 2;
+    let ball;
+    let table = [];
+    let controls;
+    let cueStick;
     init();
     render();
 
     function doIt(mesh){
         if (! (mesh instanceof THREE.Mesh)) return;
         mesh.material.side = THREE.DoubleSide;
-        var physicMesh = new Physijs.ConcaveMesh(new THREE.Geometry().fromBufferGeometry(mesh.geometry), mesh.material, 0);
-        var box = new THREE.BoxHelper( physicMesh, 0xff0000 );
+        let physicMesh = new Physijs.ConcaveMesh(new THREE.Geometry().fromBufferGeometry(mesh.geometry), mesh.material, 0);
+        let box = new THREE.BoxHelper( physicMesh, 0xff0000 );
         scene.add(box);
         scene.add(physicMesh);
     }
@@ -56,48 +60,42 @@
         controls.update();
 
         //lights
-        var spotLight = new THREE.SpotLight( 0xffffff);
+        let spotLight = new THREE.SpotLight( 0xffffff);
         spotLight.position.set(0,50,0);
         scene.add(spotLight);
 
         scene.add(camera);
-        var axesHelper = new THREE.AxesHelper(5);
+        let axesHelper = new THREE.AxesHelper(5);
         scene.add(axesHelper);
         // model
-        var onProgress = function (xhr) {
+        let onProgress = function (xhr) {
             if (xhr.lengthComputable) {
-                var percentComplete = xhr.loaded / xhr.total * 100;
+                let percentComplete = xhr.loaded / xhr.total * 100;
                 console.log(Math.round(percentComplete, 2) + '% downloaded');
             }
         };
-        var onError = function (xhr) {
+        let onError = function (xhr) {
         };
 
-        var mtlLoader = new THREE.MTLLoader();
+        let mtlLoader = new THREE.MTLLoader();
         mtlLoader.setPath('objects/');
-        mtlLoader.load('pool_table.mtl', function (materials) {
+        /*mtlLoader.load('pool_table.mtl', function (materials) {
             materials.preload();
             var objLoader = new THREE.OBJLoader();
             objLoader.setMaterials(materials);
             objLoader.setPath('objects/');
             objLoader.load('pool_table.obj', function (object) {
-
                 if (object instanceof THREE.Object3D)
                 {
                     object.traverse (function (mesh)
                     {
                         if (! (mesh instanceof THREE.Mesh)) return;
-                        table.push(mesh);
-                        //var physicMesh = new Physijs.ConcaveMesh(new THREE.Geometry().fromBufferGeometry(mesh.geometry), mesh.material, 0);
-                        //scene.add(physicMesh);
+                        mesh.material.side = THREE.DoubleSide;
                     });
-                    //doIt(table[24]);
-                   // doIt(table[23]);
-                    //doIt(table[22]);
                 }
-
+                scene.add(object)
             }, onProgress, onError);
-        });
+        });*/
 
         /*mtlLoader.load('cue_stick.mtl', function (materials) {
             materials.preload();
@@ -107,11 +105,11 @@
             objLoader.load('cue_stick.obj', function (object) {
                 scene.add(object);
             }, onProgress, onError);
-        });
+        });*/
 
-        mtlLoader.load('white_ball.mtl', function (materials) {
+        /*mtlLoader.load('white_ball.mtl', function (materials) {
             materials.preload();
-            var objLoader = new THREE.OBJLoader();
+            let objLoader = new THREE.OBJLoader();
             objLoader.setMaterials(materials);
             objLoader.setPath('objects/');
             objLoader.load('white_ball.obj', function (object) {
@@ -121,42 +119,17 @@
                     object.traverse (function (mesh)
                     {
                         if (! (mesh instanceof THREE.Mesh)) return;
-                        var physicMesh = new Physijs.BoxMesh(mesh.geometry, mesh.material);
+                        let physicMesh = new Physijs.BoxMesh(mesh.geometry, mesh.material);
                         scene.add(physicMesh);
                     });
                 }
 
             }, onProgress, onError);
         });*/
-        /*var ground = new Physijs.BoxMesh(
-            new THREE.BoxGeometry(5, 0.1, 5),
-            new THREE.MeshBasicMaterial( {color: 0x0000ff} ),
-            0
-        );
-        scene.add(ground);*/
-        var physicMesh = new Physijs.BoxMesh(
-            new THREE.BoxGeometry(1, 1, 0.1),
-            new THREE.MeshBasicMaterial( {color: 0xff0000} ),
-            0
-        );
-        var box = new THREE.BoxHelper( physicMesh, 0xff0000 );
-        physicMesh.position.set(0, 0, 0);
-        scene.add(box);
-        scene.add(physicMesh);
 
-        var ground = new Physijs.PlaneMesh(
-            new THREE.PlaneGeometry(5, 5),
-            Physijs.createMaterial(new THREE.MeshBasicMaterial({color: 0x00ffff, side: THREE.DoubleSide}), 0, 1)
-        );
-        ground.rotation.x = (Math.PI / 2) * 3;
-        scene.add(ground);
-        var geometry = new THREE.SphereGeometry( 0.02, 32, 32 );
-        var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-        ball = new Physijs.SphereMesh(geometry, material);
-        ball.position.set(0, 2, 0);
-        box = new THREE.BoxHelper( ball, 0xff0000 );
-        scene.add(box);
-        scene.add(ball);
+        createTable();
+        ball = createBall();
+        cueStick = createCueStick();
 
 
         renderer = new THREE.WebGLRenderer({ antialias:true });
@@ -167,6 +140,8 @@
 
     function render() {
         requestAnimationFrame(render);
+        cueStick.rotation.z += 0.02;
+        cueStick.__dirtyRotation = true;
         controls.update();
         scene.simulate();
         renderer.render(scene, camera);
