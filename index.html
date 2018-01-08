@@ -36,6 +36,8 @@
     let table = [];
     let controls;
     let cueStick;
+    let left = false;
+    let right = false;
     init();
     render();
 
@@ -56,6 +58,7 @@
 
         camera.lookAt(scene.position);
         controls = new THREE.OrbitControls( camera );
+        controls.enableKeys = false;
         camera.position.set( 0, 2, 2 );
         controls.update();
 
@@ -140,13 +143,47 @@
 
     function render() {
         requestAnimationFrame(render);
-        cueStick.rotation.z += 0.02;
-        cueStick.__dirtyRotation = true;
+        if(left){
+            cueStick.rotation.z += 0.02;
+            cueStick.__dirtyRotation = true;
+        }else if (right){
+            cueStick.rotation.z -= 0.02;
+            cueStick.__dirtyRotation = true;
+        }
+
         controls.update();
         scene.simulate();
         renderer.render(scene, camera);
 
     }
+
+    window.addEventListener('keydown', function(event) {
+        // space
+        if(event.keyCode == 32) {
+            let directionVector = new THREE.Vector3(-Math.sin(cueStick.rotation.z)/10000,0,Math.cos(cueStick.rotation.z)/10000);
+            ball.applyCentralImpulse(directionVector);
+        }
+        // left
+        if (event.keyCode == 37) {
+            left = true;
+        }
+        // right
+        if (event.keyCode == 39) {
+            right = true;
+        }
+
+    });
+
+    window.addEventListener('keyup', function(event) {
+        // left
+        if (event.keyCode == 37) {
+            left = false;
+        }
+        // right
+        if (event.keyCode == 39) {
+            right = false;
+        }
+    });
 </script>
 
 </body>
