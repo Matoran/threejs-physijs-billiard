@@ -33,6 +33,7 @@
     let windowHalfX = window.innerWidth / 2;
     let windowHalfY = window.innerHeight / 2;
     let ball;
+    let balls = [];
     let table = [];
     let controls;
     let cueStick;
@@ -82,9 +83,9 @@
 
         let mtlLoader = new THREE.MTLLoader();
         mtlLoader.setPath('objects/');
-        /*mtlLoader.load('pool_table.mtl', function (materials) {
+        mtlLoader.load('pool_table.mtl', function (materials) {
             materials.preload();
-            var objLoader = new THREE.OBJLoader();
+            let objLoader = new THREE.OBJLoader();
             objLoader.setMaterials(materials);
             objLoader.setPath('objects/');
             objLoader.load('pool_table.obj', function (object) {
@@ -98,17 +99,18 @@
                 }
                 scene.add(object)
             }, onProgress, onError);
-        });*/
+        });
 
-        /*mtlLoader.load('cue_stick.mtl', function (materials) {
+        mtlLoader.load('cue_stick.mtl', function (materials) {
             materials.preload();
-            var objLoader = new THREE.OBJLoader();
+            let objLoader = new THREE.OBJLoader();
             objLoader.setMaterials(materials);
             objLoader.setPath('objects/');
             objLoader.load('cue_stick.obj', function (object) {
                 scene.add(object);
+                cueStick = object;
             }, onProgress, onError);
-        });*/
+        });
 
         /*mtlLoader.load('white_ball.mtl', function (materials) {
             materials.preload();
@@ -131,8 +133,9 @@
         });*/
 
         createTable();
-        ball = createBall();
-        cueStick = createCueStick();
+        ball = createBall(0, 0, 0xffffff);
+        createBalls();
+        //cueStick = createCueStick();
 
 
         renderer = new THREE.WebGLRenderer({ antialias:true });
@@ -144,12 +147,24 @@
     function render() {
         requestAnimationFrame(render);
         if(left){
-            cueStick.rotation.z += 0.02;
+            cueStick.rotation.y -= 0.02;
             cueStick.__dirtyRotation = true;
         }else if (right){
-            cueStick.rotation.z -= 0.02;
+            cueStick.rotation.y += 0.02;
             cueStick.__dirtyRotation = true;
         }
+        if (ball.position.y < 0.89) {
+            console.log("out");
+            scene.remove(ball);
+            ball = createBall(0, 0, 0xffffff);
+        }
+
+        balls.forEach(b => {
+            if (b.position.y < 0.89 && !b.removed) {
+                scene.remove(b);
+                b.removed = true;
+            }
+        });
 
         controls.update();
         scene.simulate();
@@ -159,30 +174,35 @@
 
     window.addEventListener('keydown', function(event) {
         // space
-        if(event.keyCode == 32) {
-            let directionVector = new THREE.Vector3(-Math.sin(cueStick.rotation.z)/10000,0,Math.cos(cueStick.rotation.z)/10000);
+        if(event.code == "Space") {
+            let directionVector = new THREE.Vector3(Math.cos(cueStick.rotation.y)/10000,0,-Math.sin(cueStick.rotation.y)/10000);
             ball.applyCentralImpulse(directionVector);
-        }
-        // left
-        if (event.keyCode == 37) {
+        }else if (event.code == "ArrowLeft") {
             left = true;
-        }
-        // right
-        if (event.keyCode == 39) {
+        }else if (event.code == "ArrowRight") {
             right = true;
+        }else
+        //hide cue
+        if (event.code == "KeyH") {
+            showCueStick(false);
+        }else
+        //hide cue
+        if (event.code == "KeyS") {
+            showCueStick(true);
         }
+        console.log(event.code);
 
     });
 
     window.addEventListener('keyup', function(event) {
-        // left
-        if (event.keyCode == 37) {
+        if (event.code == "ArrowLeft") {
             left = false;
-        }
-        // right
-        if (event.keyCode == 39) {
+
+        }else if (event.code == "ArrowRight") {
             right = false;
         }
+
+
     });
 </script>
 
