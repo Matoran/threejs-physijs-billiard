@@ -2,9 +2,9 @@ function createTable() {
     let width = 2.2;
     let height = 0.1;
     let depth = 1.1;
-    let transparent = false;
+    let transparent = true;
     let friction = 0.5; // high friction
-    let restitution = 0.5; // low restitution
+    let restitution = 0; // low restitution
     let ground = new Physijs.BoxMesh(
         new THREE.BoxGeometry(width, height, depth),
         Physijs.createMaterial(new THREE.MeshBasicMaterial({

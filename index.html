@@ -40,16 +40,6 @@
     let left = false;
     let right = false;
     init();
-    render();
-
-    function doIt(mesh){
-        if (! (mesh instanceof THREE.Mesh)) return;
-        mesh.material.side = THREE.DoubleSide;
-        let physicMesh = new Physijs.ConcaveMesh(new THREE.Geometry().fromBufferGeometry(mesh.geometry), mesh.material, 0);
-        let box = new THREE.BoxHelper( physicMesh, 0xff0000 );
-        scene.add(box);
-        scene.add(physicMesh);
-    }
 
     function init() {
         // scene
@@ -109,6 +99,7 @@
             objLoader.load('cue_stick.obj', function (object) {
                 scene.add(object);
                 cueStick = object;
+                render();
             }, onProgress, onError);
         });
 
@@ -142,10 +133,14 @@
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
+
     }
 
     function render() {
         requestAnimationFrame(render);
+        cueStick.position.x = ball.position.x;
+        cueStick.position.z = ball.position.z;
+        cueStick.__dirtyPosition = true;
         if(left){
             cueStick.rotation.y -= 0.02;
             cueStick.__dirtyRotation = true;

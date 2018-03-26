@@ -6,7 +6,7 @@ function createBall(x, z, color) {
         new THREE.SphereGeometry(radius, width, height),
         Physijs.createMaterial(new THREE.MeshBasicMaterial({color: color, side: THREE.DoubleSide}), 0.2, 1),
     );
-    ball.position.set(x, .9, z);
+    ball.position.set(x, 1, z);
     scene.add(ball);
     return ball;
 }
